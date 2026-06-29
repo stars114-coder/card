@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>英語發音學習網站</title>
+<style>
+body{
+  margin:0;
+  font-family:"Microsoft JhengHei",Arial,sans-serif;
+  background:linear-gradient(135deg,#fff4f8,#e8f7ff,#f3ffe8);
+  color:#333;
+}
+header{
+  text-align:center;
+  padding:30px 15px;
+  background:#ffffffcc;
+  border-bottom:4px solid #ffd6e8;
+}
+h1{margin:0;font-size:32px;color:#ff6fae;}
+h2{color:#4b8cff;}
+main{max-width:1100px;margin:auto;padding:20px;}
+nav,section,article,footer{
+  background:#ffffffdd;
+  border-radius:22px;
+  padding:18px;
+  margin:18px 0;
+  box-shadow:0 6px 18px #00000018;
+}
+button,input,select{
+  font-size:16px;
+  border-radius:14px;
+  border:2px solid #ffd1e3;
+  padding:10px 14px;
+  margin:5px;
+}
+button{
+  background:#ff8fc5;
+  color:white;
+  border:none;
+  cursor:pointer;
+}
+button:hover{background:#ff5aa8;}
+.card-area{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+  gap:16px;
+}
+article.card{
+  text-align:center;
+  border:3px solid #ffe1ef;
+}
+.big-letter{
+  font-size:48px;
+  font-weight:bold;
+  color:#ff6fae;
+}
+.word{
+  font-size:28px;
+  color:#4b8cff;
+  font-weight:bold;
+}
+.kk{color:#8a5cff;font-weight:bold;}
+.good{color:#1ca65c;font-weight:bold;}
+.bad{color:#e14545;font-weight:bold;}
+progress{width:100%;height:22px;}
+footer{text-align:center;color:#777;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>英語自然拼讀發音學習網站</h1>
+  <p>點擊發音、跟讀練習、單字測驗、進度記錄</p>
+</header>
+
+<main>
+
+<nav>
+  <input id="searchBox" type="search" placeholder="搜尋：Aa、apple、/æ/">
+  <select id="categorySelect">
+    <option value="all">全部分類</option>
+    <option value="letter">26 字母</option>
+    <option value="vowel">母音組合</option>
+    <option value="r">R 控制音</option>
+    <option value="blend">輔音組合</option>
+  </select>
+  <button onclick="renderCards()">搜尋 / 篩選</button>
+  <button onclick="startQuiz()">開始測驗</button>
+</nav>
+
+<section>
+  <h2>學習進度</h2>
+  <p id="progressText">已學習 0 張</p>
+  <progress id="progressBar" value="0" max="100"></progress>
+</section>
+
+<section id="quizBox">
+  <h2>小測驗</h2>
+  <p id="quizQuestion">按「開始測驗」練習聽音辨字。</p>
+  <section id="quizOptions"></section>
+  <p id="quizResult"></p>
+</section>
+
+<section>
+  <h2>發音學習卡</h2>
+  <section id="cardArea" class="card-area"></section>
+</section>
+
+</main>
+
+<footer>
+  <p>使用瀏覽器內建語音功能。建議使用 Chrome、Edge 或手機瀏覽器。</p>
+</footer>
+
+<script>
+const cards = [
+{cat:"letter",title:"Aa",sound:"æ",kk:"/æ/ /eɪ/",tip:"短音 æ 大口梅花音，長音 eɪ 是字母本名",words:["ant","apple","cat"]},
+{cat:"letter",title:"Bb",sound:"b",kk:"/b/",tip:"雙唇閉合，聲帶震動",words:["ball","book","boy"]},
+{cat:"letter",title:"Cc",sound:"k",kk:"/k/ /s/",tip:"遇 a o u 多讀 k，遇 e i y 多讀 s",words:["cat","cup","city"]},
+{cat:"letter",title:"Dd",sound:"d",kk:"/d/",tip:"舌尖輕彈上齒齦",words:["dog","desk","dad"]},
+{cat:"letter",title:"Ee",sound:"ɛ",kk:"/ɛ/ /i/",tip:"短音 ɛ 扁嘴快速讀，長音 i 拉長",words:["egg","pen","bee"]},
+{cat:"letter",title:"Ff",sound:"f",kk:"/f/",tip:"上齒輕碰下唇送氣",words:["fish","five","fan"]},
+{cat:"letter",title:"Gg",sound:"g",kk:"/g/ /dʒ/",tip:"硬音 g，軟音 dʒ",words:["go","girl","bag"]},
+{cat:"letter",title:"Hh",sound:"h",kk:"/h/",tip:"輕輕呵氣",words:["hat","hand","hen"]},
+{cat:"letter",title:"Ii",sound:"ɪ",kk:"/ɪ/ /aɪ/",tip:"短音 ɪ 輕短，長音 aɪ 拉長",words:["pig","sit","kite"]},
+{cat:"letter",title:"Jj",sound:"j",kk:"/dʒ/",tip:"翹舌濁音，短促有力",words:["juice","jump","jet"]},
+{cat:"letter",title:"Kk",sound:"k",kk:"/k/",tip:"舌根抬起送氣",words:["kite","king","kick"]},
+{cat:"letter",title:"Ll",sound:"l",kk:"/l/",tip:"舌尖頂上齒齦",words:["leg","look","ball"]},
+{cat:"letter",title:"Mm",sound:"m",kk:"/m/",tip:"閉嘴鼻音",words:["mom","milk","map"]},
+{cat:"letter",title:"Nn",sound:"n",kk:"/n/",tip:"舌尖鼻音",words:["nose","net","pen"]},
+{cat:"letter",title:"Oo",sound:"ɑ",kk:"/ɑ/ /o/",tip:"短音 ɑ，長音 o",words:["dog","hot","nose"]},
+{cat:"letter",title:"Pp",sound:"p",kk:"/p/",tip:"雙唇閉合送氣",words:["pig","pen","cap"]},
+{cat:"letter",title:"Qq",sound:"kw",kk:"/kw/",tip:"q 通常搭配 u，讀 kw",words:["queen","quick","quit"]},
+{cat:"letter",title:"Rr",sound:"r",kk:"/r/",tip:"美式捲舌音",words:["red","run","rabbit"]},
+{cat:"letter",title:"Ss",sound:"s",kk:"/s/",tip:"清嘶音",words:["sun","snake","bus"]},
+{cat:"letter",title:"Tt",sound:"t",kk:"/t/",tip:"舌尖輕點，短促乾淨",words:["ten","tree","hat"]},
+{cat:"letter",title:"Uu",sound:"ʌ",kk:"/ʌ/ /ju/",tip:"短音 ʌ，長音 ju",words:["cup","bus","cute"]},
+{cat:"letter",title:"Vv",sound:"v",kk:"/v/",tip:"咬唇並震動聲帶",words:["van","five","vest"]},
+{cat:"letter",title:"Ww",sound:"w",kk:"/w/",tip:"圓唇短音",words:["water","wind","web"]},
+{cat:"letter",title:"Xx",sound:"ks",kk:"/ks/",tip:"k 加 s 快速連讀",words:["box","fox","six"]},
+{cat:"letter",title:"Yy",sound:"y",kk:"/j/ /ɪ/ /aɪ/",tip:"詞首多讀 j，詞尾可作母音",words:["yes","yellow","my"]},
+{cat:"letter",title:"Zz",sound:"z",kk:"/z/",tip:"濁嘶音，聲帶震動",words:["zoo","zip","zebra"]},
+
+{cat:"vowel",title:"ai",sound:"ai",kk:"/e/",tip:"a+i 手拉手，讀長 A",words:["rain","train","wait"]},
+{cat:"vowel",title:"ay",sound:"ay",kk:"/e/",tip:"ay 常在詞尾，讀長 A",words:["day","play","may"]},
+{cat:"vowel",title:"ee",sound:"ee",kk:"/i/",tip:"兩個 e 讀長 E",words:["see","tree","bee"]},
+{cat:"vowel",title:"ea",sound:"ea",kk:"/i/ /ɛ/",tip:"多數讀長 E，少數讀短 E",words:["tea","sea","head"]},
+{cat:"vowel",title:"oa",sound:"oa",kk:"/o/",tip:"讀長 O",words:["boat","coat","goat"]},
+{cat:"vowel",title:"oi",sound:"oi",kk:"/ɔɪ/",tip:"o 滑向 i",words:["oil","coin","join"]},
+{cat:"vowel",title:"ou",sound:"ou",kk:"/aʊ/",tip:"張大嘴滑動音",words:["house","mouse","cloud"]},
+{cat:"vowel",title:"a-e",sound:"cake",kk:"/e/",tip:"魔術 e 不發音，a 變長音",words:["cake","name","lake"]},
+
+{cat:"r",title:"ar",sound:"ar",kk:"/ɑr/",tip:"a 遇 r，張嘴捲舌",words:["car","star","farm"]},
+{cat:"r",title:"or",sound:"or",kk:"/ɔr/",tip:"o 遇 r，圓嘴捲舌",words:["for","horse","fork"]},
+{cat:"r",title:"er",sound:"er",kk:"/ɝ/",tip:"輕捲舌中音",words:["her","bird","term"]},
+{cat:"r",title:"air",sound:"air",kk:"/ɛr/",tip:"a+i+r 合體滑動",words:["air","hair","chair"]},
+
+{cat:"blend",title:"ch",sound:"ch",kk:"/tʃ/",tip:"翹舌清脆音",words:["chair","chat","bench"]},
+{cat:"blend",title:"sh",sound:"sh",kk:"/ʃ/",tip:"輕輕噓聲",words:["ship","shop","fish"]},
+{cat:"blend",title:"th 清音",sound:"th",kk:"/θ/",tip:"舌尖輕咬上下齒，無聲送氣",words:["three","think","mouth"]},
+{cat:"blend",title:"th 濁音",sound:"this",kk:"/ð/",tip:"咬齒並震動聲帶",words:["this","that","they"]},
+{cat:"blend",title:"ph",sound:"ph",kk:"/f/",tip:"ph 通常讀 f",words:["phone","photo","graph"]},
+{cat:"blend",title:"ck",sound:"ck",kk:"/k/",tip:"短母音後接 ck，收尾短促",words:["clock","duck","black"]},
+{cat:"blend",title:"bl",sound:"bl",kk:"/bl/",tip:"b 接 l 一口氣讀",words:["blue","block","blow"]},
+{cat:"blend",title:"tr",sound:"tr",kk:"/tr/",tip:"t 接 r，清脆連讀",words:["tree","train","truck"]},
+{cat:"blend",title:"ng",sound:"ng",kk:"/ŋ/",tip:"後鼻音，不爆破",words:["sing","king","long"]}
+];
+
+let learned = JSON.parse(localStorage.getItem("learnedPhonics") || "[]");
+let currentAnswer = "";
+
+function speak(text){
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "en-US";
+  u.rate = 0.75;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(u);
+}
+
+function markLearned(title){
+  if(!learned.includes(title)){
+    learned.push(title);
+    localStorage.setItem("learnedPhonics", JSON.stringify(learned));
+  }
+  updateProgress();
+}
+
+function updateProgress(){
+  const percent = Math.round((learned.length / cards.length) * 100);
+  document.getElementById("progressText").textContent = "已學習 " + learned.length + " / " + cards.length + " 張";
+  document.getElementById("progressBar").value = percent;
+}
+
+function renderCards(){
+  const area = document.getElementById("cardArea");
+  const keyword = document.getElementById("searchBox").value.toLowerCase();
+  const cat = document.getElementById("categorySelect").value;
+  area.innerHTML = "";
+
+  cards.filter(card => {
+    const text = (card.title + " " + card.kk + " " + card.tip + " " + card.words.join(" ")).toLowerCase();
+    return (cat === "all" || card.cat === cat) && text.includes(keyword);
+  }).forEach(card => {
+    const article = document.createElement("article");
+    article.className = "card";
+
+    const title = document.createElement("p");
+    title.className = "big-letter";
+    title.textContent = card.title;
+
+    const kk = document.createElement("p");
+    kk.className = "kk";
+    kk.textContent = "KK 音標：" + card.kk;
+
+    const tip = document.createElement("p");
+    tip.textContent = "口訣：" + card.tip;
+
+    const word = document.createElement("p");
+    word.className = "word";
+    word.textContent = card.words.join(" / ");
+
+    const b1 = document.createElement("button");
+    b1.textContent = "播放音";
+    b1.onclick = () => {
+      speak(card.sound);
+      markLearned(card.title);
+    };
+
+    const b2 = document.createElement("button");
+    b2.textContent = "播放單字";
+    b2.onclick = () => {
+      speak(card.words.join(". "));
+      markLearned(card.title);
+    };
+
+    article.appendChild(title);
+    article.appendChild(kk);
+    article.appendChild(tip);
+    article.appendChild(word);
+    article.appendChild(b1);
+    article.appendChild(b2);
+    area.appendChild(article);
+  });
+}
+
+function startQuiz(){
+  const quiz = cards[Math.floor(Math.random() * cards.length)];
+  currentAnswer = quiz.words[0];
+  document.getElementById("quizQuestion").textContent = "請聽發音，選出正確單字：";
+  speak(currentAnswer);
+
+  const options = [currentAnswer];
+  while(options.length < 4){
+    const randomWord = cards[Math.floor(Math.random() * cards.length)].words[0];
+    if(!options.includes(randomWord)) options.push(randomWord);
+  }
+  options.sort(() => Math.random() - 0.5);
+
+  const box = document.getElementById("quizOptions");
+  box.innerHTML = "";
+  options.forEach(option => {
+    const btn = document.createElement("button");
+    btn.textContent = option;
+    btn.onclick = () => checkAnswer(option);
+    box.appendChild(btn);
+  });
+}
+
+function checkAnswer(option){
+  const result = document.getElementById("quizResult");
+  if(option === currentAnswer){
+    result.className = "good";
+    result.textContent = "答對了！Good job!";
+    speak("Good job! " + currentAnswer);
+  }else{
+    result.className = "bad";
+    result.textContent = "再試一次，正確答案是：" + currentAnswer;
+    speak("Try again. " + currentAnswer);
+  }
+}
+
+renderCards();
+updateProgress();
+</script>
+
+</body>
+</html>
